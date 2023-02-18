@@ -6,12 +6,11 @@ Module contents:
    but rather finish what can be finished and collect all exceptions at the end.
 """
 
-from dataclasses import dataclass, replace
-from typing import Protocol, runtime_checkable, TypeVar, Iterable, Type, Callable, Optional, Iterator, Generic, Sequence
-from typing_extensions import Self
 from abc import abstractmethod
-from itertools import chain
-from functools import reduce
+from dataclasses import dataclass, replace
+from typing import Generic, Iterable, Optional, Protocol, Type, TypeVar, runtime_checkable
+
+from typing_extensions import Self
 
 
 # *** Monoid ***
@@ -24,7 +23,6 @@ class Monoid(Protocol):
     (for the examples above, `pd.concat`, `+`), to satisfy the Monoid protocol, and then the `msum` function does
     the rest for you."""
 
-
     @abstractmethod
     def __add__(self, other: Self) -> Self:
         raise NotImplementedError
@@ -34,19 +32,25 @@ class Monoid(Protocol):
     def empty(cls) -> Self:
         raise NotImplementedError
 
+
 # NOTE it is rather unfortunate that the following method needs the Type explicitly -- because Python has, afaik,
 # no proper template/macro capability to infer that information from the context. Also, we can't just turn it
 # into a classmethod, if we want Monoid to stay a protocol and not become an ABC.
-TMonoid = TypeVar('TMonoid', bound=Monoid)
+TMonoid = TypeVar("TMonoid", bound=Monoid)
+
+
 def msum(i: Iterable[TMonoid], t: Type[TMonoid]) -> TMonoid:
     return sum(i, start=t.empty())
+
 
 @dataclass
 class Failure:
     """Represents a caught Exception. User fills `origin` based on context -- it can be stack trace, params,
     identifier, ... To be used in concurrent compute, when single Exception should not bring it all down."""
+
     origin: str
     exception: Exception
+
 
 @dataclass
 class MaybeResult(Generic[TMonoid]):
@@ -67,6 +71,4 @@ class MaybeResult(Generic[TMonoid]):
             result = self.result
         else:
             result = self.result + other.result
-        return replace(self, result=result, failure=self.failure+other.failure)
-
-
+        return replace(self, result=result, failure=self.failure + other.failure)
