@@ -1,0 +1,45 @@
+name: publish
+on:
+  push:
+    branches:
+      - 'main'
+jobs:
+  test-suite:
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v3
+       with:
+         fetch-depth: 0
+     - uses: actions/setup-python@v2
+       with:
+         python-version: 3.8.16
+     - run: make static-analysis test-suite
+     # - uses: actions/upload-artifact@v3 # todo -- this would use some easily displayable artifact
+     #   with:
+     #     name: code-coverage-report
+     #     path: htmlcov
+     #     retention-days: 7
+  release:
+    needs: test-suite
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+     - uses: rymndhng/release-on-push-action@v0.25.0 # https://github.com/marketplace/actions/tag-release-on-push-action
+       with:
+         bump_version_scheme: minor
+  publish:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v3
+       with:
+         fetch-depth: 0
+     - uses: actions/setup-python@v2
+       with:
+         python-version: 3.8.16
+     - run: make build
+     - uses: pypa/gh-action-pypi-publish@release/v1 # https://github.com/pypa/gh-action-pypi-publish
+       with:
+         user: "__token__"
+         password: ${{ secrets.PYPITOKEN }}
