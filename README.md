@@ -7,7 +7,7 @@ We have a full typing annotations coverage, though at times Python limitation it
 ## Subpackages
 * [ds](src/fuefpyco/ds) contains useful dataclasses or contracts such as Monoid or Either,
 * [it](src/fuefpyco/it) provides iterator/iterable oriented functionality such as flatmaps, monoid sums or windowing,
-* [pa](src/fuefpyco/pa) boasts with higher level interfaces to that of standard python's `multiprocessing` or `concurrent`.
+* [pa](src/fuefpyco/pa) boasts with parallel processing interfaces, alternative to that of standard python's `multiprocessing` or `concurrent`.
 
 Individual functions are documented in the docstring of the module, with illustrative examples located in [tests](tests).
 

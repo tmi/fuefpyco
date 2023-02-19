@@ -8,7 +8,7 @@ Module contents:
 
 from abc import abstractmethod
 from dataclasses import dataclass, replace
-from typing import Generic, Iterable, Optional, Protocol, Type, TypeVar, runtime_checkable
+from typing import Any, Generic, Iterable, Optional, Protocol, Type, TypeVar, runtime_checkable
 
 from typing_extensions import Self
 
@@ -36,6 +36,7 @@ class Monoid(Protocol):
 # NOTE it is rather unfortunate that the following method needs the Type explicitly -- because Python has, afaik,
 # no proper template/macro capability to infer that information from the context. Also, we can't just turn it
 # into a classmethod, if we want Monoid to stay a protocol and not become an ABC.
+# NOTE going with Optional would not be much better, because the add/radd result would have wrong type
 TMonoid = TypeVar("TMonoid", bound=Monoid)
 
 
@@ -51,10 +52,21 @@ class Failure:
     origin: str
     exception: Exception
 
+    def __eq__(self, other: Any) -> bool:
+        # NOTE we override since `Exception`'s eq seems to be non cooperative with pickling
+        if not isinstance(other, Failure):
+            return False
+        if other.origin == self.origin and str(self.exception) == str(other.exception):
+            return True
+        return False
+
 
 @dataclass
 class MaybeResult(Generic[TMonoid]):
-    result: Optional[TMonoid]
+    """Note this is *not* an Either-class, both `result` and `failure` may be filled. This is to support non-critical
+    failures, and previous-attempt failures"""
+
+    result: Optional[TMonoid]  # ideally, this would be just TMonoid. Alas, because of type erasure we couldnt `empty()`
     failure: list[Failure]
 
     @classmethod
