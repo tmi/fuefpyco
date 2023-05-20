@@ -20,8 +20,8 @@ To use, instantiate the dataclass ProcessPerTask, with the config field containi
 pass to the core.mapreduce method.
 """
 
-# TODO instead of full timeout, wait just on the queue
-# TODO retries
+# TODO https://github.com/tmi/fuefpyco/issues/3 instead of full timeout, wait just on the queue
+# TODO https://github.com/tmi/fuefpyco/issues/2 retries
 
 import logging
 import time
@@ -70,7 +70,7 @@ def _entrypoint(f: Callable[[T], TMonoid], arg: T, q: Queue, p_id: int):
     q.put(_IntermediateResult(result=result, p_id=p_id))
 
 
-def process_per_task_mapreduce(f: Callable[[T], TMonoid], s: Iterable[T], c: Config) -> MaybeResult[TMonoid]:
+def _mapreduce(f: Callable[[T], TMonoid], s: Iterable[T], c: Config) -> MaybeResult[TMonoid]:
     if c.task_retries > 0:
         raise NotImplementedError("non-zero retries are not implemented yet")
     result: MaybeResult[TMonoid] = MaybeResult.empty()
@@ -148,4 +148,4 @@ class ProcessPerTask:
     config: Config
 
     def mapreduce(self, f: Callable[[T], TMonoid], s: Iterable[T]) -> MaybeResult[TMonoid]:
-        return process_per_task_mapreduce(f, s, self.config)
+        return _mapreduce(f, s, self.config)
