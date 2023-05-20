@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 from typing_extensions import Self
 
 from fuefpyco.ds import Failure, msum
-from fuefpyco.pa import ComputationConfig, mapreduce
+from fuefpyco.pa import PPTConfig, ProcessPerTask, mapreduce
 
 
 @dataclass
@@ -30,7 +30,7 @@ def simple_f(a: int):
 
 def test_mapreduce_happy():
     logging.basicConfig(level="DEBUG", force=True)
-    config = ComputationConfig(parallelism=4, single_task_timeout_s=1)
+    config = ProcessPerTask(PPTConfig(parallelism=4, task_timeout_s=1))
     input_seq = [1, 2, 3]
     result = mapreduce(simple_f, input_seq, config)
     assert result.result == msum((simple_f(e) for e in input_seq), AMonoid)
